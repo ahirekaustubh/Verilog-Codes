@@ -1,0 +1,100 @@
+///module
+//water vending machine by kaustubh ahire v1.0
+module fsm_3s( clk, rst, in, out);
+ 
+  input clk,rst, in;
+  output reg out;
+  
+  
+  reg [1:0] state;
+  parameter [2:0]
+  s0 = 2'b00,
+  s1 = 2'b01,
+  s2 = 2'b10,
+  s3 = 2'b11;
+  
+  always@(posedge clk)
+    begin
+      if(rst)//reset=1
+        state <=s0;
+      else //r=0 
+        begin 
+          case (state)
+            s0: begin
+              if(in==0)
+                state <= s0;// if input os 0= it will remian in S0 ideal state of water vending machine.
+                else 
+                  state <= s1;// insert amount of water 1L, 5L
+            end
+            
+            s1: begin 
+              if(in==1)
+                state <= state; //1L water will be selected
+                else 
+                  state <= s2; // 5L water will be selected and moved to next screen.
+            end
+            s2: begin //Do you want to continue
+              if(in==1)//no
+                state <= s0; // go back to ideal state
+                else //yes
+                  state <= s3; // go forward
+            end
+            s3: begin
+              if(in== 1)//check details
+                state <= state;//select enter and insert coin
+              else 
+                state <= s0;//transaction cancelled
+            end
+          endcase
+        end
+    end
+  
+  
+  always@(posedge clk)
+    begin 
+      if (rst)//r=1 
+        out <= 1'b0;  //o=0
+     else if 
+       (state == s3)
+        out <=1'b0;
+      else 
+        out <= 1'b1;
+    end
+endmodule
+
+
+
+
+
+
+
+
+////testbench
+//water vending machine by kaustubh ahire v1.0
+module FSM_tb;
+ reg clk, rst, in;
+ wire out;
+  fsm_3s uut (.clk(clk), .rst(rst), .in(in), .out(out));
+  initial
+    begin
+      clk=0;
+      forever
+        #5 clk=~clk;
+    end
+  initial
+    begin
+      rst=1;
+      #10; rst=1'b0;
+      in=1; #10;
+      in=0; #10;
+      in=0; #10;
+      in=1; #10;
+    end
+  initial
+    begin
+      $dumpfile("fsm.vcd");
+      $dumpvars(0);
+      $monitor("time is=%g, %b, %b, %b, %b", $time , clk, rst, in, out);
+      #50; $finish();
+    end
+endmodule
